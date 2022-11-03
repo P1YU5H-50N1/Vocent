@@ -4,6 +4,7 @@ if (!isChrome) {
 }
 
 let details ={}
+let speaking = false
 
 
 const send_mail = async (details) => {
@@ -16,7 +17,7 @@ const send_mail = async (details) => {
 		let res = await axios.post("/", details, axiosConfig);
 		console.log(res, "res");
 		converse(
-			"Mail Sent Successfully. Who would you like to send another email?"
+			"Mail Sent Successfully. Who would you like to send the next email?"
 		);
 	} catch (err) {
 		console.log("ERR", err, err.response);
@@ -35,7 +36,17 @@ function validateEmail(email) {
 }
 
 
+let names = ['anirudh','keshav','tushar','piyush']
+let emails = {
+	'anirudh':"aroy00708@gmail.com",
+	'keshav':"keshavsain603@gmail.com",
+	'tushar':"tusharsri070801@gmail.com",
+	'piyush':"me.piyush.360@gmail.com"
+}
 
+const getEmail = (name)=>{
+	return emails[name]
+}
 
 const texts = document.querySelector(".texts");
 
@@ -49,6 +60,10 @@ let p = document.createElement("p");
 
 recognition.addEventListener("result", (e) => {
   texts.appendChild(p);
+  console.log(speaking)
+  if(synth.speaking){
+	  return
+  }
   const text = Array.from(e.results)
     .map((result) => result[0])
     .map((result) => result.transcript)
@@ -56,40 +71,15 @@ recognition.addEventListener("result", (e) => {
 
   p.innerText = text;
   if (e.results[0].isFinal) {
-
-
-    // if (text.includes("how are you")) {
-    //   p = document.createElement("p");
-    //   p.classList.add("replay");
-    //   p.innerText = "I am fine";
-    //   texts.appendChild(p);
-    // }
-    // if (
-    //   text.includes("what's your name") ||
-    //   text.includes("what is your name")
-    // ) {
-    //   p = document.createElement("p");
-    //   p.classList.add("replay");
-    //   p.innerText = "My Name is Cifar";
-    //   texts.appendChild(p);
-    // }
-    // if (text.includes("open my YouTube")) {
-    //   p = document.createElement("p");
-    //   p.classList.add("replay");
-    //   p.innerText = "opening youtube channel";
-    //   texts.appendChild(p);
-    //   console.log("opening youtube");
-    //   window.open("https://www.youtube.com/channel/UCdxaLo9ALJgXgOUDURRPGiQ");
-    // }
-    if (text.includes("at the rate") || text === "Piyush") {
+    if (text.includes("at the rate") || names.includes(text.toLowerCase())) {
 			console.log(text, "text");
 			reciever =
-				text === "Piyush"
-					? "me.piyush.360@gmail.com"
+				names.includes(text.toLowerCase())
+					? getEmail(text.toLowerCase())
 					: text.replace("at the rate ", "@").replace(" ", "");
 			if (validateEmail(reciever)) {
 				converse(
-					`You said : ${reciever} \n What would you like to say?`
+					`The email is : ${reciever}. \n what would you like to say or say reset if incorrect?`
 				);
 				details["receiver_email"] = reciever;
 				console.log(details);
@@ -98,10 +88,13 @@ recognition.addEventListener("result", (e) => {
 			}
 		} else {
 			if (details["receiver_email"]) {
-				details["message"] = text;
-				send_mail(details)
-				
-			} else {
+				if(text.toLowerCase().includes('reset')){
+					converse("Who would you like to send the email?")
+				}else{
+					details["message"] = text;
+					send_mail(details)
+				}
+			}else {
 				converse(
 					"Can't understand please try again to tell reciever's email"
 				);
@@ -151,6 +144,7 @@ const speak = (message) => {
 };
 
 function converse(message) {
+	
 	p = document.createElement("p");
 	p.classList.add("reply");
 	p.innerText = message;

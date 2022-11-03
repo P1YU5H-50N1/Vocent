@@ -10,7 +10,10 @@ app = Flask(__name__)
 def home():
     if(request.method == 'POST'):
         receiver_email = request.json["receiver_email"]
-        message = request.json["message"]
+        message = """\
+                    Subject: From Vocent
+
+                    """ + request.json["message"]
         try:
             context = ssl.create_default_context()
             with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
